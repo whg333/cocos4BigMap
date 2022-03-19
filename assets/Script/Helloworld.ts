@@ -101,7 +101,7 @@ export default class Helloworld extends cc.Component {
 
     private calcBgStatus(dt: number){
         this.timer += dt;
-        if(this.timer >= 5){
+        if(this.timer >= 1){
             this.timer = 0;
 
             let viewMaxRect = Helloworld.getNodeMaxRect(this.viewNode);
@@ -117,8 +117,8 @@ export default class Helloworld extends cc.Component {
         let bgValue = this.getValue(bgMaxRect, direction);
         let viewValue = this.getValue(viewMaxRect, direction);
         let diffValue = this.calcDiff(bgValue, viewValue);
-        cc.warn(direction, "diff: ", bgValue, viewValue, diffValue);
-        if(diffValue <= 50){
+        // cc.warn(direction, "diff: ", bgValue, viewValue, diffValue);
+        if(diffValue != undefined && diffValue <= 500){
             this.bgObjArr.forEach(bgObj => {
                 let pos = bgObj.getPos();
                 switch (direction){
@@ -144,7 +144,8 @@ export default class Helloworld extends cc.Component {
         if((a >= 0 && b >= 0) || (a < 0 && b < 0)){
             return Math.abs(a-b);
         }
-        return Math.abs(a+b);
+        // return Math.abs(a+b);
+        return undefined;
     }
 
     private getValue(maxRect: MaxRect, direction: Direction){
