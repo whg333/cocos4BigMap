@@ -1,3 +1,5 @@
+import Joystick, {instance, SpeedType} from "./Joystick";
+
 const {ccclass, property} = cc._decorator;
 
 enum Direction{
@@ -59,11 +61,31 @@ export default class Helloworld extends cc.Component {
     @property(cc.Graphics)
     rootGrap: cc.Graphics = null;
 
+    // from joystick
+    @property({
+        displayName: "Move Dir",
+        tooltip: "移动方向",
+    })
+    moveDir = cc.v2(0, 0);
+
+    @property({
+        displayName: "Speed Type",
+        tooltip: "速度级别",
+    })
+    _speedType: SpeedType = SpeedType.STOP;
+
+    @property(Joystick)
+    joystick: Joystick = null;
+
     private bgObjArr: BgObject[] = new Array(4);
     private timer: number = 0;
 
     protected onLoad() {
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+
+        instance.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
+        instance.on(cc.Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
+        instance.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
     }
 
     protected onDestroy() {
@@ -79,10 +101,31 @@ export default class Helloworld extends cc.Component {
         });
     }
 
-    protected update(dt: number) {
-        this.mainCamera.node.position = this.roleNode.position;
-        this.calcBgStatus(dt);
+    onTouchStart() {}
 
+    onTouchMove(event: cc.Event.EventTouch, data) {
+        this._speedType = data.speedType;
+        this.moveDir = data.moveDistance;
+    }
+
+    onTouchEnd(event: cc.Event.EventTouch, data) {
+        this._speedType = data.speedType;
+    }
+
+    protected update(dt: number) {
+        if (this._speedType !== SpeedType.STOP) {
+            // this.roleNode.angle =
+            //     cc.misc.radiansToDegrees(Math.atan2(this.moveDir.y, this.moveDir.x)) - 90;
+            const oldPos = cc.v2();
+            this.roleNode.getPosition(oldPos);
+            // cc.warn("moveDir", this.moveDir.x, this.moveDir.y);
+            const newPos = oldPos.add(this.moveDir.mul(this.speed));
+            this.roleNode.setPosition(newPos);
+
+            this.mainCamera.node.position = this.roleNode.position;
+        }
+
+        this.calcBgStatus(dt);
         this.showRectLine();
     }
 
