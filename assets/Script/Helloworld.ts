@@ -120,7 +120,6 @@ export default class Helloworld extends cc.Component {
                 // cc.warn("containsRt", i, bgObj.rect.containsRect(viewRect));
             });
 
-            let bgMaxRect = this.getBgMaxRect();
             let viewMaxRect = Helloworld.getNodeMaxRect(this.viewNode);
             // cc.warn("diff up: ", maxRect.up, viewMaxRect.up,
             //     Math.abs(maxRect.up-viewMaxRect.up));
@@ -137,28 +136,49 @@ export default class Helloworld extends cc.Component {
             //     cc.warn(idleBg.name, "set new pos");
             //     idleBg.setPos(newPos);
             // }
-            this.supplyBg(bgMaxRect, viewMaxRect, Direction.up);
-            this.supplyBg(bgMaxRect, viewMaxRect, Direction.down);
-            this.supplyBg(bgMaxRect, viewMaxRect, Direction.left);
-            this.supplyBg(bgMaxRect, viewMaxRect, Direction.right);
+            this.supplyBg(viewMaxRect, Direction.up);
+            this.supplyBg(viewMaxRect, Direction.down);
+            this.supplyBg(viewMaxRect, Direction.left);
+            this.supplyBg(viewMaxRect, Direction.right);
 
             // cc.warn("diff right: ", maxRect.right, viewMaxRect.right,
             //     Math.abs(maxRect.right-viewMaxRect.right));
         }
     }
 
-    private supplyBg(bgMaxRect: MaxRect, viewMaxRect: MaxRect, direction: Direction){
+    private supplyBg(viewMaxRect: MaxRect, direction: Direction){
+        let bgMaxRect: MaxRect = this.getMaxRect();
         let bgValue = this.getValue(bgMaxRect, direction);
         let viewValue = this.getValue(viewMaxRect, direction);
-        let diffValue = Math.abs(bgValue-viewValue);
+        let diffValue = this.calcDiff(bgValue, viewValue);
         cc.warn(direction, "diff: ", bgValue, viewValue, diffValue);
         if(diffValue <= 50){
-            let idleBg = this.getIdleBg();
-            let usedBg = this.getUsedBg();
-            let newPos = this.newPos(usedBg, direction);
-            cc.warn(idleBg.name, "set new pos");
-            idleBg.setPos(newPos);
+            this.bgObjArr.forEach(bgObj => {
+                let pos = bgObj.getPos();
+                switch (direction){
+                    case Direction.up:
+                        bgObj.setPos(cc.v3(pos.x, pos.y+1024, pos.z));
+                        break;
+                    case Direction.down:
+                        bgObj.setPos(cc.v3(pos.x, pos.y-1024, pos.z));
+                        break;
+                    case Direction.left:
+                        bgObj.setPos(cc.v3(pos.x-1024, pos.y, pos.z));
+                        break;
+                    case Direction.right:
+                        bgObj.setPos(cc.v3(pos.x+1024, pos.y, pos.z));
+                        break;
+                }
+            });
+            this.bgMaxRect = null; //重置为null令其重新计算后缓存起来
         }
+    }
+
+    private calcDiff(a: number, b:number){
+        if((a >= 0 && b >= 0) || (a < 0 && b < 0)){
+            return Math.abs(a-b);
+        }
+        return Math.abs(a+b);
     }
 
     private getValue(maxRect: MaxRect, direction: Direction){
@@ -189,8 +209,16 @@ export default class Helloworld extends cc.Component {
     }
 
     private getIdleBg(): BgObject{
-        let bgArr: BgObject[] = this.bgObjArr.filter(bgObj => bgObj.isIdle());
-        if(!bgArr || bgArr.length <= 0){
+        let bgArr = [];
+        for(let i=0;i<this.bgObjArr.length;i++){
+            if(this.bgObjArr[i].isIdle()){
+                let idle = this.bgObjArr.splice(i,1)[0];
+                bgArr.push(idle);
+                this.bgObjArr.push(idle); //前面删除后，放到末尾
+            }
+        }
+
+        if(bgArr.length <= 0){
             return null;
         }
         // cc.warn("idleBgArr: ", bgArr);
@@ -206,37 +234,30 @@ export default class Helloworld extends cc.Component {
         return bgArr[0];
     }
 
-    private getBgMaxRect(){
-        let maxUp = 0;
-        let maxDown = 0;
-        let maxLeft = 0;
-        let maxRight = 0;
-        this.bgObjArr.forEach((bgObj, i) => {
-            let bgMaxRect = bgObj.getMaxRect();
-            let up = bgMaxRect.up;
-            if(up > maxUp){
-                maxUp = up;
-            }
+    private bgMaxRect: MaxRect = null;
 
-            let down = bgMaxRect.down;
-            if(down < maxDown){
-                maxDown = down;
-            }
+    private getMaxRect(){
+        if(this.bgMaxRect){
+            return this.bgMaxRect;
+        }
 
-            let left = bgMaxRect.left;
-            if(left < maxLeft){
-                maxLeft = left;
-            }
-
-            let right = bgMaxRect.right;
-            if(right > maxRight){
-                maxRight = right;
-            }
-
-            // cc.warn("\n");
-            // cc.warn("maxRect", i, up, down, left, right);
+        let upArr: number[] = [];
+        let downArr = [];
+        let leftArr = [];
+        let rightArr = [];
+        this.bgObjArr.forEach(bgObj => {
+            let maxRect = bgObj.getMaxRect();
+            upArr.push(maxRect.up);
+            downArr.push(maxRect.down);
+            leftArr.push(maxRect.left);
+            rightArr.push(maxRect.right);
         });
-        return {up: maxUp, down: maxDown, left: maxLeft, right: maxRight};
+        return this.bgMaxRect = {
+            up: Math.max(...upArr),
+            down: Math.min(...downArr),
+            left: Math.min(...leftArr),
+            right: Math.max(...rightArr),
+        };
     }
 
     static getNodeMaxRect(node: cc.Node){
