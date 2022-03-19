@@ -16,12 +16,6 @@ class BgObject{
         this.bgNode = bgNode;
         this.viewNode = viewNode;
     }
-    isIdle(): boolean{
-        return !this.isUsed();
-    }
-    isUsed(): boolean{
-        return this.getRect().intersects(this.viewNode.getBoundingBox());
-    }
     getRect(): cc.Rect{
         return this.bgNode.getBoundingBox();
     }
@@ -36,6 +30,7 @@ class BgObject{
     }
 }
 
+//最大边界的坐标值，类似cc.Rect
 class MaxRect{
     up: number;
     down: number;
@@ -91,9 +86,10 @@ export default class Helloworld extends cc.Component {
         this.rootGrap.clear();
 
         this.rootGrap.strokeColor = cc.Color.RED;
-        this.rootGrap.rect(this.roleNode.position.x-50, this.roleNode.position.y-50,
-            this.roleNode.getContentSize().width, this.roleNode.getContentSize().height);
         this.rootGrap.lineWidth = 10;
+
+        let roleRect = this.roleNode.getBoundingBox()
+        this.rootGrap.rect(roleRect.x, roleRect.y, roleRect.width, roleRect.height);
         this.rootGrap.stroke();
 
         this.bgObjArr.forEach(bgObj => {
@@ -108,41 +104,11 @@ export default class Helloworld extends cc.Component {
         if(this.timer >= 5){
             this.timer = 0;
 
-            // let wPos: cc.Vec3 = this.roleNode.convertToWorldSpaceAR(cc.Vec3.ZERO);
-            // let cPos: cc.Vec3 = this.roleNode.position;
-            // cc.log("world: ", wPos.x, wPos.y);
-            // cc.log("cocos: ", cPos.x, cPos.y);
-
-            // let viewRect = this.roleNode.getBoundingBox()
-            this.bgObjArr.forEach((bgObj, i) => {
-                // cc.warn("\n");
-                // cc.warn("intersects", i, bgObj.isUsed());
-                // cc.warn("containsRt", i, bgObj.rect.containsRect(viewRect));
-            });
-
             let viewMaxRect = Helloworld.getNodeMaxRect(this.viewNode);
-            // cc.warn("diff up: ", maxRect.up, viewMaxRect.up,
-            //     Math.abs(maxRect.up-viewMaxRect.up));
-            // cc.warn("diff down: ", maxRect.down, viewMaxRect.down,
-            //     Math.abs(maxRect.down-viewMaxRect.down));
-
-            // let diffLeft = Math.abs(maxRect.left-viewMaxRect.left);
-            // cc.warn("diff left: ", maxRect.left, viewMaxRect.left, diffLeft);
-            // if(diffLeft <= 50){
-            //     let idleBg = this.getIdleBg();
-            //     let usedBg = this.getUsedBg();
-            //     let usedPos = usedBg.getPos();
-            //     let newPos = cc.v3(usedPos.x-1024, usedPos.y, usedPos.z);
-            //     cc.warn(idleBg.name, "set new pos");
-            //     idleBg.setPos(newPos);
-            // }
             this.supplyBg(viewMaxRect, Direction.up);
             this.supplyBg(viewMaxRect, Direction.down);
             this.supplyBg(viewMaxRect, Direction.left);
             this.supplyBg(viewMaxRect, Direction.right);
-
-            // cc.warn("diff right: ", maxRect.right, viewMaxRect.right,
-            //     Math.abs(maxRect.right-viewMaxRect.right));
         }
     }
 
@@ -192,46 +158,6 @@ export default class Helloworld extends cc.Component {
             case Direction.right:
                 return maxRect.right;
         }
-    }
-
-    private newPos(usedBg: BgObject, direction: Direction){
-        let usedPos = usedBg.getPos();
-        switch (direction){
-            case Direction.up:
-                return cc.v3(usedPos.x, usedPos.y+1024, usedPos.z);
-            case Direction.down:
-                return cc.v3(usedPos.x, usedPos.y-1024, usedPos.z);
-            case Direction.left:
-                return cc.v3(usedPos.x-1024, usedPos.y, usedPos.z);
-            case Direction.right:
-                return cc.v3(usedPos.x+1024, usedPos.y, usedPos.z);
-        }
-    }
-
-    private getIdleBg(): BgObject{
-        let bgArr = [];
-        for(let i=0;i<this.bgObjArr.length;i++){
-            if(this.bgObjArr[i].isIdle()){
-                let idle = this.bgObjArr.splice(i,1)[0];
-                bgArr.push(idle);
-                this.bgObjArr.push(idle); //前面删除后，放到末尾
-            }
-        }
-
-        if(bgArr.length <= 0){
-            return null;
-        }
-        // cc.warn("idleBgArr: ", bgArr);
-        return bgArr[0];
-    }
-
-    private getUsedBg(): BgObject{
-        let bgArr: BgObject[] = this.bgObjArr.filter(bgObj => bgObj.isUsed());
-        if(!bgArr || bgArr.length <= 0){
-            return null;
-        }
-        // cc.warn("usedBgArr: ", bgArr);
-        return bgArr[0];
     }
 
     private bgMaxRect: MaxRect = null;
