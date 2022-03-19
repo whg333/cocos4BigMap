@@ -83,15 +83,20 @@ export default class Helloworld extends cc.Component {
         this.mainCamera.node.position = this.roleNode.position;
         this.calcBgStatus(dt);
 
+        this.showRectLine();
+    }
+
+    private showRectLine(){
         this.rootGrap.clear();
 
-        this.rootGrap.strokeColor = cc.Color.RED;
         this.rootGrap.lineWidth = 10;
 
+        this.rootGrap.strokeColor = cc.Color.GREEN;
         let roleRect = this.roleNode.getBoundingBox()
         this.rootGrap.rect(roleRect.x, roleRect.y, roleRect.width, roleRect.height);
         this.rootGrap.stroke();
 
+        this.rootGrap.strokeColor = cc.Color.RED;
         this.bgObjArr.forEach(bgObj => {
             let rect = bgObj.getRect();
             this.rootGrap.rect(rect.x, rect.y, rect.width, rect.height);
