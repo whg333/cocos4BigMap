@@ -80,8 +80,12 @@ export default class Helloworld extends cc.Component {
     @property(cc.Integer)
     keyboardSpeed = 10;
 
+    @property([cc.Sprite])
+    enemyArr: Array<cc.Sprite> = [];
+
     private bgObjArr: BgObject[] = new Array(4);
     private timer: number = 0;
+    private bgMaxRect: MaxRect = null;
 
     protected onLoad() {
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
@@ -129,6 +133,8 @@ export default class Helloworld extends cc.Component {
 
         this.calcBgStatus(dt);
         this.showRectLine();
+
+        this.updateEnemy(dt);
     }
 
     private showRectLine(){
@@ -211,8 +217,6 @@ export default class Helloworld extends cc.Component {
         }
     }
 
-    private bgMaxRect: MaxRect = null;
-
     private getMaxRect(){
         if(this.bgMaxRect){
             return this.bgMaxRect;
@@ -263,6 +267,29 @@ export default class Helloworld extends cc.Component {
                 this.roleNode.x += speed;
                 break;
         }
+    }
+
+    private updateEnemy(dt: number) {
+        let rolePos = this.roleNode.position;
+        rolePos = cc.v3(rolePos.x+Math.floor(Math.random() * 10),
+            rolePos.y+Math.floor(Math.random() * 5), rolePos.z)
+        let enemySpeed = Math.random();
+        let newPos = cc.v3();
+        this.enemyArr.forEach(enemy => {
+            let enemyPos = enemy.node.position;
+            if(enemyPos.x < rolePos.x){
+                newPos.x = enemyPos.x + enemySpeed;
+            }else if(enemyPos.x > rolePos.x){
+                newPos.x = enemyPos.x - enemySpeed;
+            }
+
+            if(enemyPos.y < rolePos.y){
+                newPos.y = enemyPos.y + enemySpeed;
+            }else if(enemyPos.y > rolePos.y){
+                newPos.y = enemyPos.y - enemySpeed;
+            }
+            enemy.node.position = newPos;
+        })
     }
 
 }
