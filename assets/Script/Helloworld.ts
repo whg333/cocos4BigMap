@@ -125,7 +125,6 @@ export default class Helloworld extends cc.Component {
             const newPos = oldPos.add(this.moveDir.mul(this.joystickSpeed));
             this.roleNode.setPosition(newPos);
         }
-
         this.mainCamera.node.position = this.roleNode.position;
 
         this.calcBgStatus(dt);
@@ -152,7 +151,7 @@ export default class Helloworld extends cc.Component {
 
     private calcBgStatus(dt: number){
         this.timer += dt;
-        if(this.timer >= 1){
+        if(this.timer >= 0.1){
             this.timer = 0;
 
             let viewMaxRect = Helloworld.getNodeMaxRect(this.viewNode);
@@ -169,7 +168,7 @@ export default class Helloworld extends cc.Component {
         let viewValue = this.getValue(viewMaxRect, direction);
         let diffValue = this.calcDiff(bgValue, viewValue);
         // cc.warn(direction, "diff: ", bgValue, viewValue, diffValue);
-        if(diffValue != undefined && diffValue <= 500){
+        if(diffValue != undefined && diffValue < 500){
             this.bgObjArr.forEach(bgObj => {
                 let pos = bgObj.getPos();
                 switch (direction){
