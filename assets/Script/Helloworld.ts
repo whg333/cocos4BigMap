@@ -55,9 +55,6 @@ export default class Helloworld extends cc.Component {
     @property(cc.Node)
     roleNode: cc.Node = null;
 
-    @property(cc.Integer)
-    speed = 10;
-
     @property(cc.Graphics)
     rootGrap: cc.Graphics = null;
 
@@ -77,6 +74,12 @@ export default class Helloworld extends cc.Component {
     @property(Joystick)
     joystick: Joystick = null;
 
+    @property(cc.Integer)
+    joystickSpeed = 10;
+
+    @property(cc.Integer)
+    keyboardSpeed = 10;
+
     private bgObjArr: BgObject[] = new Array(4);
     private timer: number = 0;
 
@@ -93,7 +96,7 @@ export default class Helloworld extends cc.Component {
     }
 
     start () {
-        cc.log("speed", this.speed);
+        cc.log("joystickSpeed", this.joystickSpeed, "keyboardSpeed", this.keyboardSpeed);
 
         this.bgArr.forEach((bg, i) => {
             let bgNode = this.bgArr[i].node;
@@ -119,11 +122,11 @@ export default class Helloworld extends cc.Component {
             const oldPos = cc.v2();
             this.roleNode.getPosition(oldPos);
             // cc.warn("moveDir", this.moveDir.x, this.moveDir.y);
-            const newPos = oldPos.add(this.moveDir.mul(this.speed));
+            const newPos = oldPos.add(this.moveDir.mul(this.joystickSpeed));
             this.roleNode.setPosition(newPos);
-
-            this.mainCamera.node.position = this.roleNode.position;
         }
+
+        this.mainCamera.node.position = this.roleNode.position;
 
         this.calcBgStatus(dt);
         this.showRectLine();
@@ -246,18 +249,19 @@ export default class Helloworld extends cc.Component {
     }
 
     private onKeyDown(event){
+        let speed = this.keyboardSpeed;
         switch(event.keyCode) {
             case cc.macro.KEY.up:
-                this.roleNode.y += this.speed;
+                this.roleNode.y += speed;
                 break;
             case cc.macro.KEY.down:
-                this.roleNode.y -= this.speed;
+                this.roleNode.y -= speed;
                 break;
             case cc.macro.KEY.left:
-                this.roleNode.x -= this.speed;
+                this.roleNode.x -= speed;
                 break;
             case cc.macro.KEY.right:
-                this.roleNode.x += this.speed;
+                this.roleNode.x += speed;
                 break;
         }
     }

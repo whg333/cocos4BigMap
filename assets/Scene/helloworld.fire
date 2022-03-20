@@ -1898,7 +1898,6 @@
     "roleNode": {
       "__id__": 15
     },
-    "speed": 1,
     "rootGrap": {
       "__id__": 27
     },
@@ -1911,6 +1910,8 @@
     "joystick": {
       "__id__": 37
     },
+    "joystickSpeed": 1,
+    "keyboardSpeed": 5,
     "_id": "caLtHThGFNY5D4ARw/7LtJ"
   },
   {
